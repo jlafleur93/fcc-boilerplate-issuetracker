@@ -1,4 +1,7 @@
 "use strict";
+
+const bodyParser = require("body-parser");
+
 // Create an issue with every field: POST request to /api/issues/{project}
 // Create an issue with only required fields: POST request to /api/issues/{project}
 // Create an issue with missing required fields: POST request to /api/issues/{project}
@@ -19,6 +22,7 @@ module.exports = function (app) {
     issue_text :"Not a fun bug",
     assigned_to : "Satan"
   }};
+
   function generateRandomString() {
     let randomString = "";
     for (let i = 0; i <= 6; i++) {
@@ -32,12 +36,16 @@ module.exports = function (app) {
     .get(function (req, res) {
       let project = req.params.project;
       const _id = req.params._id;
-      console.log(`what is project`, req.params.project,`retobj`, retObj[req.params.project]);
-      res.json({ project, _id });
+      retObj[req.params.project]
+      console.log(`what is project`, req.params.project,`retobj`, );
+      res.json( retObj );
     })
 
     .post(function (req, res) {
       let project = req.params.project;
+      let obj = {
+        retArr : ["same", "yayeet"]
+      }
       const issue_title = req.body.issue_title;
       const issue_text = req.body.issue_text;
       const assigned_to = req.body.assigned_to;
@@ -51,11 +59,12 @@ module.exports = function (app) {
         created_by,
         status_text,
         _id,
+        open : true,
       };
       retObj = project;
-      console.log(`check`, req.query)
-      console.log(`retobj here`, retObj);
-      res.json(project);
+      obj.retArr[0] = retObj
+      console.log(obj.retArr[1])
+      res.json(obj.retArr[0]);
     })
 
     .put(function (req, res) {
