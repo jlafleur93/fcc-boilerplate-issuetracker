@@ -8,23 +8,14 @@ const bodyParser = require("body-parser");
 // View issues on a project: GET request to /api/issues/{project}
 // View issues on a project with one filter: GET request to /api/issues/{project}
 // View issues on a project with multiple filters: GET request to /api/issues/{project}
-// Update one field on an issue: PUT request to /api/issues/{project}
-// Update multiple fields on an issue: PUT request to /api/issues/{project}
-// Update an issue with missing _id: PUT request to /api/issues/{project}
-// Update an issue with no fields to update: PUT request to /api/issues/{project}
-// Update an issue with an invalid _id: PUT request to /api/issues/{project}
+
 // Delete an issue: DELETE request to /api/issues/{project}
 // Delete an issue with an invalid _id: DELETE request to /api/issues/{project}
 // Delete an issue with missing _id: DELETE request to /api/issues/{project}
 module.exports = function (app) {
-  let retObj = {"apitest":{
-    issue_title : "yee",
-    issue_text :"Not a fun bug",
-    assigned_to : "Satan"
-  }};
-  let obj = {
-    retArr : []
-  }
+  let retObj = {};
+  let obj = []
+  
   function generateRandomString() {
     let randomString = "";
     for (let i = 0; i <= 6; i++) {
@@ -38,8 +29,9 @@ module.exports = function (app) {
     .get(function (req, res) {
       let project = req.params.project;
       const _id = req.params._id;
-      obj.retArr[req.params.project]
-      res.json( obj.retArr );
+      obj[project]
+      console.log(obj[project])
+      res.json( obj );
     })
 
     .post(function (req, res) {
@@ -62,9 +54,9 @@ module.exports = function (app) {
         open : true,
       };
       retObj = project;
-      obj.retArr.push(project)
-      console.log(project)
-      res.json(obj.retArr);
+      obj.push(project)
+      console.log(project, obj)
+      res.json(obj);
     })
 
     .put(function (req, res) {
