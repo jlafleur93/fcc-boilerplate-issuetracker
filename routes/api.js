@@ -55,15 +55,60 @@ module.exports = function (app) {
       };
       retObj = project;
       obj.push(project)
-      console.log(project, obj)
+      
       res.json(obj);
     })
 
     .put(function (req, res) {
       let project = req.params.project;
+      console.log(`reqbody`,req.body)
     })
 
     .delete(function (req, res) {
       let project = req.params.project;
     });
 };
+const issues = [
+  {
+    issue_title: 'zztop',
+    issue_text: 'da fasd',
+    assigned_to: 'joe qwe',
+    created_by: 'asd',
+    status_text: 'open',
+    _id: '8672761',
+    open: true
+  },
+  {
+    issue_title: 'll',
+    issue_text: 'da fasd',
+    assigned_to: 'joe qwe',
+    created_by: 'asd',
+    status_text: 'open',
+    _id: '8852220',
+    open: true
+  },
+]
+function issueFinder(issue, id,options){
+  let newId = Number(id)
+  if(newId){
+    if(options){
+      let ret = issue.filter(x => x._id === id)
+      ret = options
+      return ret
+    }
+    return ""
+
+  }
+  return "Please enter a valid number"  
+
+}
+const options = {
+  issue_title: 'newVal',
+    issue_text: 'dad',
+    assigned_to: 'joe king',
+    created_by: 'deez nuts',
+    status_text: 'closed due to aids',
+}
+let newFind = issueFinder(issues, "8852220", options)
+let str = "asdf"
+console.log(newFind)
