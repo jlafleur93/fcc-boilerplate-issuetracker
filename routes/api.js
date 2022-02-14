@@ -22,7 +22,9 @@ module.exports = function (app) {
     issue_text :"Not a fun bug",
     assigned_to : "Satan"
   }};
-
+  let obj = {
+    retArr : []
+  }
   function generateRandomString() {
     let randomString = "";
     for (let i = 0; i <= 6; i++) {
@@ -36,21 +38,19 @@ module.exports = function (app) {
     .get(function (req, res) {
       let project = req.params.project;
       const _id = req.params._id;
-      retObj[req.params.project]
-      console.log(`what is project`, req.params.project,`retobj`, );
-      res.json( retObj );
+      obj.retArr[req.params.project]
+      res.json( obj.retArr );
     })
 
     .post(function (req, res) {
       let project = req.params.project;
-      let obj = {
-        retArr : ["same", "yayeet"]
-      }
+      
       const issue_title = req.body.issue_title;
       const issue_text = req.body.issue_text;
       const assigned_to = req.body.assigned_to;
       const created_by = req.body.created_by;
       const status_text = req.body.status_text;
+      
       const _id = generateRandomString();
       project = {
         issue_title,
@@ -62,9 +62,9 @@ module.exports = function (app) {
         open : true,
       };
       retObj = project;
-      obj.retArr[0] = retObj
-      console.log(obj.retArr[1])
-      res.json(obj.retArr[0]);
+      obj.retArr.push(project)
+      console.log(project)
+      res.json(obj.retArr);
     })
 
     .put(function (req, res) {
