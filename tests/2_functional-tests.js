@@ -27,19 +27,19 @@ suite('Functional Tests', function() {
 // Update an issue with missing _id: PUT request to /api/issues/{project}
 // Update an issue with no fields to update: PUT request to /api/issues/{project}
 // Update an issue with an invalid _id: PUT request to /api/issues/{project}
-      suite("put request #1", function(){
-      const issue_title = "yee";
-      const issue_text = 'Not a fun bug';
-      const created_by= "Satan";
-      const _id = 01
-      const status_text= "in QA";
-        test("update an issue with a put request to an existing an api", function(){
+      // suite("put request #1", function(){
+      // const issue_title = "yee";
+      // const issue_text = 'Not a fun bug';
+      // const created_by= "Satan";
+      // const _id = 01
+      // const status_text= "in QA";
+      //   test("update an issue with a put request to an existing an api", function(){
           
-          chai.request(server).put('/api/issues/test').send({issue_title, issue_text, created_by, assigned_to, status_text}).end(function(err, res){
-            assert.equal(res.status, 200)
-            assert.equal(issue_title, "no")
-          })
-        })
-      })
+      //     chai.request(server).put('/api/issues/test').send({issue_title, issue_text, created_by, assigned_to, status_text}).end(function(err, res){
+      //       assert.equal(res.status, 200)
+      //       assert.equal(issue_title, "no")
+      //     })
+      //   })
+      // })
   })
 });

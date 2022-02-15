@@ -13,8 +13,7 @@ const bodyParser = require("body-parser");
 // Delete an issue with an invalid _id: DELETE request to /api/issues/{project}
 // Delete an issue with missing _id: DELETE request to /api/issues/{project}
 module.exports = function (app) {
-  let retObj = {};
-  let obj = []
+  let arr = []
   
   function generateRandomString() {
     let randomString = "";
@@ -29,14 +28,14 @@ module.exports = function (app) {
     .get(function (req, res) {
       let project = req.params.project;
       const _id = req.params._id;
-      obj[project]
-      console.log(obj[project])
-      res.json( obj );
+      project
+      console.log(`get request`,project.project)
+      res.json( arr );
     })
 
     .post(function (req, res) {
       let project = req.params.project;
-      
+      project = {}
       const issue_title = req.body.issue_title;
       const issue_text = req.body.issue_text;
       const assigned_to = req.body.assigned_to;
@@ -53,10 +52,8 @@ module.exports = function (app) {
         _id,
         open : true,
       };
-      retObj = project;
-      obj.push(project)
-      
-      res.json(obj);
+      arr.push(project)
+      res.json(project);
     })
 
     .put(function (req, res) {
@@ -88,7 +85,15 @@ const issues = [
     open: true
   },
 ]
+
 function issueFinder(issue, id,options){
+  let opt = ["issue_title",
+  "issue_text",
+  "assigned_to",
+  "created_by",
+  "status_text",
+  "_id",
+  ]
   let newId = Number(id)
   if(newId){
     if(options){
@@ -96,11 +101,22 @@ function issueFinder(issue, id,options){
       ret = options
       return ret
     }
-    return ""
+    let ret = issue.filter(x => x._id === id)
+    const idHelp = "_id"
+    let newObj = {
+      issue_text: "",
+      issue_title: "", 
+      created_by: "",
+      status_text: "" ,
+      open: true,
+      _id: ret[0][idHelp]
+    }
+  
+    return newObj
+    
 
   }
-  return "Please enter a valid number"  
-
+  console.error("required field(s) missing")
 }
 const options = {
   issue_title: 'newVal',
@@ -109,6 +125,6 @@ const options = {
     created_by: 'deez nuts',
     status_text: 'closed due to aids',
 }
-let newFind = issueFinder(issues, "8852220", options)
+let newFind = issueFinder(issues, "ds0")
 let str = "asdf"
 console.log(newFind)
