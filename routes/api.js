@@ -29,7 +29,6 @@ module.exports = function (app) {
       let project = req.params.project;
       const _id = req.params._id;
       project
-      console.log(`get request`,project.project)
       res.json( arr );
     })
 
@@ -58,7 +57,8 @@ module.exports = function (app) {
 
     .put(function (req, res) {
       let project = req.params.project;
-      console.log(`reqbody`,req.body)
+      console.log(`body of request`, req.body['_id'])
+      let issue = issueFinder(arr)
     })
 
     .delete(function (req, res) {
