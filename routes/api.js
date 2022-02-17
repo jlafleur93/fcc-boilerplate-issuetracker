@@ -59,6 +59,7 @@ module.exports = function (app) {
       let project = req.params.project;
       console.log(`body of request`, req.body['_id'])
       let issue = issueFinder(arr)
+      //same
     })
 
     .delete(function (req, res) {
