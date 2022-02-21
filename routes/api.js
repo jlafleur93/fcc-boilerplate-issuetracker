@@ -13,8 +13,8 @@ const bodyParser = require("body-parser");
 // Delete an issue with an invalid _id: DELETE request to /api/issues/{project}
 // Delete an issue with missing _id: DELETE request to /api/issues/{project}
 module.exports = function (app) {
-  let arr = []
-  
+  let arr = [];
+
   function generateRandomString() {
     let randomString = "";
     for (let i = 0; i <= 6; i++) {
@@ -27,21 +27,26 @@ module.exports = function (app) {
 
     .get(function (req, res) {
       let project = req.params.project;
-      console.log(req.query)
+      // console.log(req.query);
       const _id = req.params._id;
-      project
-      res.json( arr );
+      project;
+      res.json(arr);
     })
 
     .post(function (req, res) {
       let project = req.params.project;
-      project = {}
+      project = {};
       const issue_title = req.body.issue_title;
       const issue_text = req.body.issue_text;
       const assigned_to = req.body.assigned_to;
+      if (!assigned_to || !issue_text || !issue_title) {
+        let obj = { error: "required field(s) missing" };
+        return res.json(obj.error);
+      }
       const created_by = req.body.created_by;
       const status_text = req.body.status_text;
-      
+      let created_on = req.body.created_on;
+
       const _id = generateRandomString();
       project = {
         issue_title,
@@ -50,24 +55,25 @@ module.exports = function (app) {
         created_by,
         status_text,
         _id,
-        open : true,
+        created_on,
+        open: true,
       };
-      arr.push(project)
+      arr.push(project);
       res.json(arr[0]);
     })
 
     .put(function (req, res) {
       let project = req.params.project;
-      let issue = issueFinder(arr, req.body["_id"], req.body)
-      
-      project = issue
-      for(let i = 0; i < arr.length; i++){
-        if(arr[i]['_id'] === issue._id){
-          arr[i] = issue
+      let issue = issueFinder(arr, req.body["_id"], req.body);
+
+      project = issue;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i]["_id"] === issue._id) {
+          arr[i] = issue;
         }
       }
-      
-      res.json(project)
+      project["updated_on"] = Date.now();
+      res.json({ result: "successfully updated" });
     })
 
     .delete(function (req, res) {
@@ -75,40 +81,39 @@ module.exports = function (app) {
     });
 };
 
-function issueFinder(issue, id,options){
-  let opt = ["issue_title",
-  "issue_text",
-  "assigned_to",
-  "created_by",
-  "status_text",
-  "_id",
-  ]
-  let newId = Number(id)
-  if(newId){
-    if(options){
-      let ret = issue.filter(x => x._id === id)
-      ret = options
-      for(let i = 0; i < opt.length; i++){
-        if(options[opt[i]] === undefined){
-          ret[opt[i]] = ""
+function issueFinder(issue, id, options) {
+  let opt = [
+    "issue_title",
+    "issue_text",
+    "assigned_to",
+    "created_by",
+    "status_text",
+    "_id",
+  ];
+  let newId = Number(id);
+  if (newId) {
+    if (options) {
+      let ret = issue.filter((x) => x._id === id);
+      ret = options;
+      for (let i = 0; i < opt.length; i++) {
+        if (options[opt[i]] === undefined) {
+          ret[opt[i]] = "";
         }
       }
-      return ret
+      return ret;
     }
-    let ret = issue.filter(x => x._id === id)
-    const idHelp = "_id"
+    let ret = issue.filter((x) => x._id === id);
+    const idHelp = "_id";
     let newObj = {
       issue_text: "",
-      issue_title: "", 
+      issue_title: "",
       created_by: "",
-      status_text: "" ,
+      status_text: "",
       open: true,
-      _id: ret[0][idHelp]
-    }
-  
-    return newObj
-    
+      _id: ret[0][idHelp],
+    };
 
+    return newObj;
   }
-  console.error("required field(s) missing")
+  console.error("required field(s) missing");
 }
