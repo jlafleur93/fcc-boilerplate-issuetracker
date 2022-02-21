@@ -27,6 +27,7 @@ module.exports = function (app) {
 
     .get(function (req, res) {
       let project = req.params.project;
+      console.log(req.query)
       const _id = req.params._id;
       project
       res.json( arr );
