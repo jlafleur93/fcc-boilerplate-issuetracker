@@ -52,14 +52,20 @@ module.exports = function (app) {
         open : true,
       };
       arr.push(project)
-      res.json(project);
+      res.json(arr[0]);
     })
 
     .put(function (req, res) {
       let project = req.params.project;
-      console.log(`body of request`, req.body['_id'])
-      let issue = issueFinder(arr)
-      //same
+      let issue = issueFinder(arr, req.body["_id"], req.body)
+      project = issue
+      for(let i = 0; i < arr.length; i++){
+        if(arr[i]['_id'] === issue._id){
+          arr[i] = issue
+        }
+      }
+      
+      res.json(arr)
     })
 
     .delete(function (req, res) {
