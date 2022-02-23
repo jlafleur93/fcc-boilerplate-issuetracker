@@ -26,11 +26,58 @@ module.exports = function (app) {
     .route("/api/issues/:project")
 
     .get(function (req, res) {
+      
       let project = req.params.project;
-      // console.log(req.query);
-      const _id = req.params._id;
-      project;
-      res.json(arr);
+     project =[{
+        "issue_title": "this site sucks",
+          "issue_text": "agreed",
+          "assigned_to":"jimbob",
+          "created_by": "Jimbobs ex",
+          "status_text": "get rekt jimbob",
+          "_id": "01",
+          "open": "true",
+          created_on: Date.now(),
+      }, 
+      {
+        "issue_title": "I love you son",
+          "issue_text": "Yeet",
+          "assigned_to":"Jimdad",
+          "created_by": "jimsdad",
+          "status_text": "I did your mom, ha gottem!",
+          "_id": "09",
+          "open": "true",
+          created_on: Date.now(),
+      }]
+      const queryStr = req.query
+      function isEmptyObject(obj) {
+        return Object.keys(obj).length === 0;
+    }
+    if(isEmptyObject(queryStr)){
+      res.json(project);
+    }
+      function filterQuery(query, database){
+        let retObj = {}
+        let opt = [
+          "issue_title",
+          "issue_text",
+          "assigned_to",
+          "created_by",
+          "status_text",
+          "_id",
+          "open",
+        ];
+        let newQueue = Object.keys(query)
+        let queue = query
+          console.log(newQueue.length,queue)
+          if(newQueue.length === 1){
+            let filter = database.filter(x => x[newQueue[0]] === queue[newQueue[0]])
+            retObj = filter
+          }
+        return retObj
+      }
+      let newFilter = filterQuery(queryStr, project)
+      project = newFilter
+      res.json(project)
     })
 
     .post(function (req, res) {
@@ -45,7 +92,7 @@ module.exports = function (app) {
       }
       const created_by = req.body.created_by;
       const status_text = req.body.status_text;
-      let created_on = req.body.created_on;
+      let created_on = Date.now();
 
       const _id = generateRandomString();
       project = {
@@ -64,6 +111,9 @@ module.exports = function (app) {
 
     .put(function (req, res) {
       let project = req.params.project;
+      if(!req.body["_id"]){
+        res.json({error:"missing _id"})
+      }
       let issue = issueFinder(arr, req.body["_id"], req.body);
 
       project = issue;
@@ -73,7 +123,7 @@ module.exports = function (app) {
         }
       }
       project["updated_on"] = Date.now();
-      res.json({ result: "successfully updated" });
+      res.json({_id: req.body["_id"], result: "successfully updated" });
     })
 
     .delete(function (req, res) {

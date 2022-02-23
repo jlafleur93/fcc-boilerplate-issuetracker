@@ -7,16 +7,17 @@ chai.use(chaiHttp);
 
 suite("Functional Tests", function () {
   suite("create an issue with every field in the post request", function () {
-    test("check that all fields are with the issue", function (end) {
+    test("check that all fields are with the issue", function (done) {
       let issue_title = "yes";
       let issue_text = "no";
       let created_by = "james";
       let assigned_to = "your mom";
       let status_text = "in QA";
+      let _id = "01";
       chai
         .request(server)
         .post("/api/issues/test")
-        .send({ issue_title, issue_text, created_by, assigned_to, status_text })
+        .send({ issue_title, issue_text, created_by, assigned_to, status_text, _id })
         .end(function (err, res) {
           assert.equal(res.status, 200);
           assert.equal(issue_title, "yes");
@@ -24,10 +25,11 @@ suite("Functional Tests", function () {
           assert.equal(created_by, "james");
           assert.equal(assigned_to, "your mom");
           assert.equal(status_text, "in QA");
-          end();
+          done();
         });
     });
-    test("required filled in", function (end) {
+  suite("post average post", ()=>{
+    test("required filled in", function (done) {
       let issue_title = "yayeet";
       let issue_text = "same";
       let created_by = "Larry";
@@ -45,10 +47,12 @@ suite("Functional Tests", function () {
           assert.equal(issue_title, "yayeet");
           assert.equal(issue_text, "same");
           assert.equal(created_by, "Larry");
-          end();
+          done();
         });
     });
-    test("required not filled in", function (end) {
+  })
+  suite("put, required missing", ()=>{
+    test("required not filled in", function (done) {
       chai
         .request(server)
         .post("/api/issues/same")
@@ -56,43 +60,73 @@ suite("Functional Tests", function () {
         .end(function (err, res) {
           assert.equal(res.status, 200);
           assert.equal(res.body, "required field(s) missing");
-          end();
+          done();
         });
     });
-
-    // Update one field on an issue: PUT request to /api/issues/{project}
-    // Update multiple fields on an issue: PUT request to /api/issues/{project}
-    // Update an issue with missing _id: PUT request to /api/issues/{project}
-    // Update an issue with no fields to update: PUT request to /api/issues/{project}
-    // Update an issue with an invalid _id: PUT request to /api/issues/{project}
-    suite("put request #1", function () {
-      let issue_title = "yee";
-      let issue_text = "Not a fun bug";
-      let created_by = "Satan";
-      let assigned_to = "joe";
-      let status_text = "in QA";
-      test("update an issue with a put request to an existing an api", function () {
-        chai
-          .request(server)
-          .put("/api/issues/test")
-          .send({
-            issue_title,
-            issue_text,
-            created_by,
-            assigned_to,
-            status_text,
-            _id: "01",
-          })
-          .end(function (err, res) {
-            assert.equal(res.status, 200);
-            assert.equal(issue_title, res.body.issue_title);
-            assert.equal(issue_text, res.body.issue_text);
-            assert.equal(created_by, res.body.created_by);
-            assert.equal(assigned_to, res.body.assigned_to);
-            assert.equal(status_text, res.body.status_text);
-            assert.equal("01", res.body._id);
-          });
-      });
-    });
+  })
+    suite('PUT to update fields on a issue',()=>{
+      test('update on field on an issue',(done)=>{
+        chai.request(server)
+            .put('/api/issues/apitest')
+            .send({
+                _id: "01",
+                issue_title: 'dunkaroos!!!!!!!!!!!!!'
+            })
+            .end(function(err, res){
+                assert.equal(res.status, 200);
+                assert.equal(res.body.result,'successfully updated');
+                assert.equal(res.body._id,"01")
+                done();
+              });
+      })
+   
   });
+  
+  suite("if put request doesn't contain id, throw a error", function(){
+    test("if missing id, throw error", (done)=>{
+    let issue_title = "yee";
+    let issue_text = "Not a fun bug";
+    let created_by = "Satan";
+    let assigned_to = "joe";
+    let status_text = "in QA";
+    chai.request(server).put("/api/issues/test").send({issue_title,
+      issue_text,
+      created_by,
+      assigned_to,
+      status_text,
+      }).end(function(err, res){
+        console.log(res.body.error)
+      assert.equal(res.status, 200);
+      assert.equal(res.body.error, "missing _id")
+      done();
+      })
+    })
+  })
+
+  suite("can send a get request with all present issues", function(){
+    test("gets a reqeuest with all fields present, and returns the get array", (done)=>{
+      chai.request(server).get('/api/issues/test').query({}).end(function(err,res){
+        assert.equal(res.status, 200)
+        assert.isArray(res.body)
+        assert.property(res.body[0], 'issue_title');
+        assert.property(res.body[0], 'issue_text');
+        assert.property(res.body[0], 'assigned_to');
+        assert.property(res.body[0], 'created_by');
+        assert.property(res.body[0], 'status_text');
+        assert.property(res.body[0], '_id');
+        assert.property(res.body[0], 'open');
+        done();
+      })
+    })
+  })
+  suite("can filter a get request by passing along any field and value as a url query", function(){
+    test("can pass in a filter and returns an object with the resulting data", (done)=>{
+      chai.request(server).get('/api/issues/test?open=true&assigned_to=joe').query({}).end(function(err, res){
+        assert.equal(res.status, 200)
+        done();
+      })
+    })
+  })
+
+})
 });
