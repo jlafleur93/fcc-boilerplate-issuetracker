@@ -26,37 +26,38 @@ module.exports = function (app) {
     .route("/api/issues/:project")
 
     .get(function (req, res) {
-      
       let project = req.params.project;
-     project =[{
-        "issue_title": "this site sucks",
-          "issue_text": "agreed",
-          "assigned_to":"jimbob",
-          "created_by": "Jimbobs ex",
-          "status_text": "get rekt jimbob",
-          "_id": "01",
-          "open": "true",
+      project = [
+        {
+          issue_title: "this site sucks",
+          issue_text: "agreed",
+          assigned_to: "jimbob",
+          created_by: "Jimbobs ex",
+          status_text: "get rekt jimbob",
+          _id: "01",
+          open: "true",
           created_on: Date.now(),
-      }, 
-      {
-        "issue_title": "I love you son",
-          "issue_text": "Yeet",
-          "assigned_to":"Jimdad",
-          "created_by": "jimsdad",
-          "status_text": "I did your mom, ha gottem!",
-          "_id": "09",
-          "open": "true",
+        },
+        {
+          issue_title: "I love you son",
+          issue_text: "Yeet",
+          assigned_to: "Jimdad",
+          created_by: "jimsdad",
+          status_text: "I did your mom, ha gottem!",
+          _id: "09",
+          open: "true",
           created_on: Date.now(),
-      }]
-      const queryStr = req.query
+        },
+      ];
+      const queryStr = req.query;
       function isEmptyObject(obj) {
         return Object.keys(obj).length === 0;
-    }
-    if(isEmptyObject(queryStr)){
-      res.json(project);
-    }
-      function filterQuery(query, database){
-        let retObj = {}
+      }
+      if (isEmptyObject(queryStr)) {
+        res.json(project);
+      }
+      function filterQuery(query, database) {
+        let retObj = {};
         let opt = [
           "issue_title",
           "issue_text",
@@ -66,18 +67,71 @@ module.exports = function (app) {
           "_id",
           "open",
         ];
-        let newQueue = Object.keys(query)
-        let queue = query
-          console.log(newQueue.length,queue)
-          if(newQueue.length === 1){
-            let filter = database.filter(x => x[newQueue[0]] === queue[newQueue[0]])
-            retObj = filter
-          }
-        return retObj
+        let newQueue = Object.keys(query);
+        let queue = query;
+        console.log(newQueue.length, queue);
+        switch (newQueue.length) {
+          case 1:
+            let filter = database.filter(
+              (x) => x[newQueue[0]] === queue[newQueue[0]],
+            );
+            retObj = filter;
+            return retObj;
+          case 2:
+            let newFilt = database.filter(
+              (x) =>
+                x[newQueue[0]] === queue[newQueue[0]] &&
+                x[newQueue[1]] === queue[newQueue[1]],
+            );
+            retObj = newFilt;
+            return retObj;
+          case 3:
+            let filterQ = database.filter(
+              (x) =>
+                x[newQueue[0]] === queue[newQueue[0]] &&
+                x[newQueue[1]] === queue[newQueue[1]] &&
+                x[newQueue[2]] === queue[newQueue[2]],
+            );
+            retObj = filterQ;
+            return retObj;
+          case 4:
+            let filter5 = database.filter(
+              (x) =>
+                x[newQueue[0]] === queue[newQueue[0]] &&
+                x[newQueue[1]] === queue[newQueue[1]] &&
+                x[newQueue[2]] === queue[newQueue[2]] &&
+                x[newQueue[3]] === queue[newQueue[3]],
+            );
+            retObj = filter5;
+            return retObj;
+          case 5:
+            let filterCase5 = database.filter(
+              (x) =>
+                x[newQueue[0]] === queue[newQueue[0]] &&
+                x[newQueue[1]] === queue[newQueue[1]] &&
+                x[newQueue[2]] === queue[newQueue[2]] &&
+                x[newQueue[3]] === queue[newQueue[3]] &&
+                x[newQueue[4]] === queue[newQueue[4]],
+            );
+            retObj = filterCase5;
+            return retObj;
+          case 6:
+            let filterCase6 = database.filter(
+              (x) =>
+                x[newQueue[0]] === queue[newQueue[0]] &&
+                x[newQueue[1]] === queue[newQueue[1]] &&
+                x[newQueue[2]] === queue[newQueue[2]] &&
+                x[newQueue[3]] === queue[newQueue[3]] &&
+                x[newQueue[4]] === queue[newQueue[4]] &&
+                x[newQueue[5]] === queue[newQueue[5]],
+            );
+            retObj = filterCase6;
+            return retObj;
+        }
       }
-      let newFilter = filterQuery(queryStr, project)
-      project = newFilter
-      res.json(project)
+      let newFilter = filterQuery(queryStr, project);
+      project = newFilter;
+      res.json(project);
     })
 
     .post(function (req, res) {
@@ -111,8 +165,8 @@ module.exports = function (app) {
 
     .put(function (req, res) {
       let project = req.params.project;
-      if(!req.body["_id"]){
-        res.json({error:"missing _id"})
+      if (!req.body["_id"]) {
+        res.json({ error: "missing _id" });
       }
       let issue = issueFinder(arr, req.body["_id"], req.body);
 
@@ -123,7 +177,7 @@ module.exports = function (app) {
         }
       }
       project["updated_on"] = Date.now();
-      res.json({_id: req.body["_id"], result: "successfully updated" });
+      res.json({ _id: req.body["_id"], result: "successfully updated" });
     })
 
     .delete(function (req, res) {
