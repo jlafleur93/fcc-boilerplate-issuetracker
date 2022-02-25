@@ -14,7 +14,6 @@ const bodyParser = require("body-parser");
 // Delete an issue with missing _id: DELETE request to /api/issues/{project}
 module.exports = function (app) {
   let arr = [];
-
   function generateRandomString() {
     let randomString = "";
     for (let i = 0; i <= 6; i++) {
@@ -27,111 +26,42 @@ module.exports = function (app) {
 
     .get(function (req, res) {
       let project = req.params.project;
-      project = [
-        {
-          issue_title: "this site sucks",
-          issue_text: "agreed",
-          assigned_to: "jimbob",
-          created_by: "Jimbobs ex",
-          status_text: "get rekt jimbob",
-          _id: "01",
-          open: "true",
-          created_on: Date.now(),
-        },
-        {
-          issue_title: "I love you son",
-          issue_text: "Yeet",
-          assigned_to: "Jimdad",
-          created_by: "jimsdad",
-          status_text: "I did your mom, ha gottem!",
-          _id: "09",
-          open: "true",
-          created_on: Date.now(),
-        },
-      ];
       const queryStr = req.query;
       function isEmptyObject(obj) {
         return Object.keys(obj).length === 0;
       }
       if (isEmptyObject(queryStr)) {
-        res.json(project);
+        return res.json(arr);
       }
-      function filterQuery(query, database) {
-        let retObj = {};
-        let opt = [
-          "issue_title",
-          "issue_text",
-          "assigned_to",
-          "created_by",
-          "status_text",
-          "_id",
-          "open",
-        ];
-        let newQueue = Object.keys(query);
-        let queue = query;
-        console.log(newQueue.length, queue);
-        switch (newQueue.length) {
-          case 1:
-            let filter = database.filter(
-              (x) => x[newQueue[0]] === queue[newQueue[0]],
+
+      if (Object.keys(queryStr).length === 1) {
+        switch (queryStr) {
+          case queryStr.open:
+            return res.json(arr.filter((x) => x.open));
+          case queryStr.status_text:
+            return res.json(
+              arr.filter((x) => x.status_text === queryStr.status_text),
             );
-            retObj = filter;
-            return retObj;
-          case 2:
-            let newFilt = database.filter(
-              (x) =>
-                x[newQueue[0]] === queue[newQueue[0]] &&
-                x[newQueue[1]] === queue[newQueue[1]],
+          case queryStr.assigned_to:
+            return res.json(
+              arr.filter((x) => x.assigned_to === queryStr.assigned_to),
             );
-            retObj = newFilt;
-            return retObj;
-          case 3:
-            let filterQ = database.filter(
-              (x) =>
-                x[newQueue[0]] === queue[newQueue[0]] &&
-                x[newQueue[1]] === queue[newQueue[1]] &&
-                x[newQueue[2]] === queue[newQueue[2]],
+          case queryStr.created_by:
+            return res.json(
+              arr.filter((x) => x.assigned_to === queryStr.assigned_to),
             );
-            retObj = filterQ;
-            return retObj;
-          case 4:
-            let filter5 = database.filter(
-              (x) =>
-                x[newQueue[0]] === queue[newQueue[0]] &&
-                x[newQueue[1]] === queue[newQueue[1]] &&
-                x[newQueue[2]] === queue[newQueue[2]] &&
-                x[newQueue[3]] === queue[newQueue[3]],
+          case queryStr.issue_title:
+            return res.json(
+              arr.filter((x) => x.issue_title === queryStr.issue_title),
             );
-            retObj = filter5;
-            return retObj;
-          case 5:
-            let filterCase5 = database.filter(
-              (x) =>
-                x[newQueue[0]] === queue[newQueue[0]] &&
-                x[newQueue[1]] === queue[newQueue[1]] &&
-                x[newQueue[2]] === queue[newQueue[2]] &&
-                x[newQueue[3]] === queue[newQueue[3]] &&
-                x[newQueue[4]] === queue[newQueue[4]],
+          case queryStr.issue_text:
+            return res.json(
+              arr.filter((x) => x.issue_text === queryStr.issue_text),
             );
-            retObj = filterCase5;
-            return retObj;
-          case 6:
-            let filterCase6 = database.filter(
-              (x) =>
-                x[newQueue[0]] === queue[newQueue[0]] &&
-                x[newQueue[1]] === queue[newQueue[1]] &&
-                x[newQueue[2]] === queue[newQueue[2]] &&
-                x[newQueue[3]] === queue[newQueue[3]] &&
-                x[newQueue[4]] === queue[newQueue[4]] &&
-                x[newQueue[5]] === queue[newQueue[5]],
-            );
-            retObj = filterCase6;
-            return retObj;
         }
       }
-      let newFilter = filterQuery(queryStr, project);
-      project = newFilter;
-      res.json(project);
+
+      return res.json(arr);
     })
 
     .post(function (req, res) {
@@ -139,17 +69,18 @@ module.exports = function (app) {
       project = {};
       const issue_title = req.body.issue_title;
       const issue_text = req.body.issue_text;
-      const assigned_to = req.body.assigned_to;
-      if (!assigned_to || !issue_text || !issue_title) {
-        let obj = { error: "required field(s) missing" };
-        return res.json(obj.error);
-      }
+      const assigned_to = req.body.assigned_to || "";
+      const status_text = req.body.status_text || "";
       const created_by = req.body.created_by;
-      const status_text = req.body.status_text;
+      const updated_on = Date.now();
       let created_on = Date.now();
 
+      if (!issue_title || !issue_text || !created_by) {
+        res.json({ error: "required field(s) missing" });
+      }
+
       const _id = generateRandomString();
-      project = {
+      let newProject = {
         issue_title,
         issue_text,
         assigned_to,
@@ -158,66 +89,60 @@ module.exports = function (app) {
         _id,
         created_on,
         open: true,
+        updated_on,
       };
-      arr.push(project);
-      res.json(arr[0]);
+      arr.push(newProject);
+      res.json(newProject);
     })
 
     .put(function (req, res) {
       let project = req.params.project;
-      if (!req.body["_id"]) {
-        res.json({ error: "missing _id" });
+      const {
+        _id,
+        issue_text,
+        issue_title,
+        created_by,
+        created_on,
+        assigned_to,
+        status_text,
+      } = req.body;
+      if (req.body["_id"] === undefined) {
+        return res.json({ error: "missing _id" });
       }
-      let issue = issueFinder(arr, req.body["_id"], req.body);
 
-      project = issue;
-      for (let i = 0; i < arr.length; i++) {
-        if (arr[i]["_id"] === issue._id) {
-          arr[i] = issue;
-        }
+      let issueFind = arr.find((x) => x._id === _id);
+
+      if (!issueFind) {
+        return res.json({ error: "no issue with id given is found" });
       }
-      project["updated_on"] = Date.now();
-      res.json({ _id: req.body["_id"], result: "successfully updated" });
+      function emptyPropertyRemover(object) {
+        let newObject = object;
+        Object.keys(newObject).forEach((key) => {
+          if (newObject[key] === "") {
+            delete newObject[key];
+          }
+        });
+        return newObject;
+      }
+
+      let newObj = emptyPropertyRemover(req.body);
+      console.log(issueFind, newObj);
+      arr = newObj;
+      res.json({ result: "successfully updated", _id: req.body["_id"] });
     })
 
     .delete(function (req, res) {
       let project = req.params.project;
-    });
-};
-
-function issueFinder(issue, id, options) {
-  let opt = [
-    "issue_title",
-    "issue_text",
-    "assigned_to",
-    "created_by",
-    "status_text",
-    "_id",
-  ];
-  let newId = Number(id);
-  if (newId) {
-    if (options) {
-      let ret = issue.filter((x) => x._id === id);
-      ret = options;
-      for (let i = 0; i < opt.length; i++) {
-        if (options[opt[i]] === undefined) {
-          ret[opt[i]] = "";
+      project = req.body;
+      if (!req.body.hasOwnProperty("_id")) {
+        res.json({ error: "please enter an _id to delete" });
+      }
+      let _id = req.body["_id"];
+      for (let i in arr) {
+        if (arr[i]["_id"] === _id) {
+          arr.shift(i);
         }
       }
-      return ret;
-    }
-    let ret = issue.filter((x) => x._id === id);
-    const idHelp = "_id";
-    let newObj = {
-      issue_text: "",
-      issue_title: "",
-      created_by: "",
-      status_text: "",
-      open: true,
-      _id: ret[0][idHelp],
-    };
-
-    return newObj;
-  }
-  console.error("required field(s) missing");
-}
+      res.json({ _id: `${_id} removed` });
+    });
+};
