@@ -124,7 +124,7 @@ module.exports = function (app) {
         });
         return newObject;
       }
-
+// empoty obj
       let newObj = emptyPropertyRemover(req.body);
       console.log(issueFind, newObj);
       arr = newObj;
