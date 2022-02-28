@@ -1,9 +1,8 @@
 let example = {
-  issue_text: "same",
-  issue_title: "leet",
+  assigned_to: "leet",
   created_by: "james",
-  assigned_to: "",
-  status_text: "",
+  status_text: "same lol",
+  yeet: "",
 };
 let obj = [
   {
@@ -26,20 +25,22 @@ let obj = [
   },
 ];
 function emptyPropertyRemover(object) {
-  let newObject = object;
-  Object.keys(newObject).forEach((key) => {
-    if (newObject[key] === "") {
-      delete newObject[key];
+  let retobj = object;
+  for (let key in retobj) {
+    if (retobj[key] === "") {
+      delete retobj[key];
     }
-  });
-  return newObject;
+  }
+  return retobj;
 }
 
 let remove = emptyPropertyRemover(example);
+console.log(remove);
 let finder = obj.find((x) => x._id === obj[0]._id);
-
+console.log(`finder`, finder);
 let newObj = Object.assign({}, finder, remove);
-console.log(`yeet`, [newObj]);
+newObj.updated_on = Date.now();
+console.log(`newobj here--`, newObj);
 //Create a function that removes the _id at the given arr[i] point
 //then push the newly created objected onto the array
 ///Part of this can be a delete, then update function lol
