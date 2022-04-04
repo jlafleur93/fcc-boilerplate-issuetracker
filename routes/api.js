@@ -1,148 +1,186 @@
 "use strict";
+const mongoose = require("mongoose");
+const IssueModel = require("../models").Issue;
+const ProjectModel = require("../models").Project;
+const ObjectId = mongoose.Types.ObjectId;
 
-const bodyParser = require("body-parser");
-
-// Create an issue with every field: POST request to /api/issues/{project}
-// Create an issue with only required fields: POST request to /api/issues/{project}
-// Create an issue with missing required fields: POST request to /api/issues/{project}
-// View issues on a project: GET request to /api/issues/{project}
-// View issues on a project with one filter: GET request to /api/issues/{project}
-// View issues on a project with multiple filters: GET request to /api/issues/{project}
-
-// Delete an issue: DELETE request to /api/issues/{project}
-// Delete an issue with an invalid _id: DELETE request to /api/issues/{project}
-// Delete an issue with missing _id: DELETE request to /api/issues/{project}
 module.exports = function (app) {
-  let arr = [];
-  function generateRandomString() {
-    let randomString = "";
-    for (let i = 0; i <= 6; i++) {
-      randomString += Math.round(Math.random() * 10);
-    }
-    return randomString;
-  }
   app
     .route("/api/issues/:project")
-
     .get(function (req, res) {
-      let project = req.params.project;
-      const queryStr = req.query;
-      function isEmptyObject(obj) {
-        return Object.keys(obj).length === 0;
-      }
-      if (isEmptyObject(queryStr)) {
-        return res.json(arr);
-      }
+      let projectName = req.params.project;
+      //?open=true&assigned_to=Joe
+      const {
+        _id,
+        open,
+        issue_title,
+        issue_text,
+        created_by,
+        assigned_to,
+        status_text,
+      } = req.query;
 
-      if (Object.keys(queryStr).length === 1) {
-        switch (queryStr) {
-          case queryStr.open:
-            return res.json(arr.filter((x) => x.open));
-          case queryStr.status_text:
-            return res.json(
-              arr.filter((x) => x.status_text === queryStr.status_text),
-            );
-          case queryStr.assigned_to:
-            return res.json(
-              arr.filter((x) => x.assigned_to === queryStr.assigned_to),
-            );
-          case queryStr.created_by:
-            return res.json(
-              arr.filter((x) => x.assigned_to === queryStr.assigned_to),
-            );
-          case queryStr.issue_title:
-            return res.json(
-              arr.filter((x) => x.issue_title === queryStr.issue_title),
-            );
-          case queryStr.issue_text:
-            return res.json(
-              arr.filter((x) => x.issue_text === queryStr.issue_text),
-            );
+      ProjectModel.aggregate([
+        { $match: { name: projectName } },
+        { $unwind: "$issues" },
+        _id != undefined
+          ? { $match: { "issues._id": ObjectId(_id) } }
+          : { $match: {} },
+        open != undefined
+          ? { $match: { "issues.open": Boolean(open) } }
+          : { $match: {} },
+        issue_title != undefined
+          ? { $match: { "issues.issue_title": issue_title } }
+          : { $match: {} },
+        issue_text != undefined
+          ? { $match: { "issues.issue_text": issue_text } }
+          : { $match: {} },
+        created_by != undefined
+          ? { $match: { "issues.created_by": created_by } }
+          : { $match: {} },
+        assigned_to != undefined
+          ? { $match: { "issues.assigned_to": assigned_to } }
+          : { $match: {} },
+        status_text != undefined
+          ? { $match: { "issues.status_text": status_text } }
+          : { $match: {} },
+      ]).exec((err, data) => {
+        if (!data) {
+          res.json([]);
+        } else {
+          let mappedData = data.map((item) => item.issues);
+          res.json(mappedData);
         }
-      }
-
-      return res.json(arr);
+      });
     })
 
     .post(function (req, res) {
       let project = req.params.project;
-      project = {};
-      const issue_title = req.body.issue_title;
-      const issue_text = req.body.issue_text;
-      const assigned_to = req.body.assigned_to || "";
-      const status_text = req.body.status_text || "";
-      const created_by = req.body.created_by;
-      const updated_on = Date.now();
-      let created_on = Date.now();
-
-      if (!issue_title || !issue_text || !created_by) {
-        res.json({ error: "required field(s) missing" });
-      }
-
-      const _id = generateRandomString();
-      let newProject = {
+      const {
         issue_title,
         issue_text,
-        assigned_to,
         created_by,
+        assigned_to,
         status_text,
-        _id,
-        created_on,
+      } = req.body;
+      if (!issue_title || !issue_text || !created_by) {
+        res.json({ error: "required field(s) missing" });
+        return;
+      }
+      const newIssue = new IssueModel({
+        issue_title: issue_title || "",
+        issue_text: issue_text || "",
+        created_on: new Date(),
+        updated_on: new Date(),
+        created_by: created_by || "",
+        assigned_to: assigned_to || "",
         open: true,
-        updated_on,
-      };
-      arr.push(newProject);
-      res.json(newProject);
+        status_text: status_text || "",
+      });
+      ProjectModel.findOne({ name: project }, (err, projectdata) => {
+        if (!projectdata) {
+          const newProject = new ProjectModel({ name: project });
+          newProject.issues.push(newIssue);
+          newProject.save((err, data) => {
+            if (err || !data) {
+              res.send("There was an error saving in post");
+            } else {
+              res.json(newIssue);
+            }
+          });
+        } else {
+          projectdata.issues.push(newIssue);
+          projectdata.save((err, data) => {
+            if (err || !data) {
+              res.send("There was an error saving in post");
+            } else {
+              res.json(newIssue);
+            }
+          });
+        }
+      });
     })
 
     .put(function (req, res) {
       let project = req.params.project;
       const {
         _id,
-        issue_text,
         issue_title,
+        issue_text,
         created_by,
-        created_on,
         assigned_to,
         status_text,
+        open,
       } = req.body;
-      if (req.body["_id"] === undefined) {
-        return res.json({ error: "missing _id" });
+      if (!_id) {
+        res.json({ error: "missing _id" });
+        return;
+      }
+      if (
+        !issue_title &&
+        !issue_text &&
+        !created_by &&
+        !assigned_to &&
+        !status_text &&
+        !open
+      ) {
+        res.json({ error: "no update field(s) sent", _id: _id });
+        return;
       }
 
-      let issueFind = arr.find((x) => x._id === _id);
-
-      if (!issueFind) {
-        return res.json({ error: "no issue with id given is found" });
-      }
-      function emptyPropertyRemover(object) {
-        let newObject = object;
-        Object.keys(newObject).forEach((key) => {
-          if (newObject[key] === "") {
-            delete newObject[key];
+      ProjectModel.findOne({ name: project }, (err, projectdata) => {
+        if (err || !projectdata) {
+          res.json({ error: "could not update", _id: _id });
+        } else {
+          const issueData = projectdata.issues.id(_id);
+          if (!issueData) {
+            res.json({ error: "could not update", _id: _id });
+            return;
           }
-        });
-        return newObject;
-      }
-// empoty obj
-      let newObj = emptyPropertyRemover(req.body);
-      console.log(issueFind, newObj);
-      arr = newObj;
-      res.json({ result: "successfully updated", _id: req.body["_id"] });
+          issueData.issue_title = issue_title || issueData.issue_title;
+          issueData.issue_text = issue_text || issueData.issue_text;
+          issueData.created_by = created_by || issueData.created_by;
+          issueData.assigned_to = assigned_to || issueData.assigned_to;
+          issueData.status_text = status_text || issueData.status_text;
+          issueData.updated_on = new Date();
+          issueData.open = open;
+          projectdata.save((err, data) => {
+            if (err || !data) {
+              res.json({ error: "could not update", _id: _id });
+            } else {
+              res.json({ result: "successfully updated", _id: _id });
+            }
+          });
+        }
+      });
     })
 
     .delete(function (req, res) {
       let project = req.params.project;
-      project = req.body;
-      if (!req.body.hasOwnProperty("_id")) {
-        res.json({ error: "please enter an _id to delete" });
+      const { _id } = req.body;
+      if (!_id) {
+        res.json({ error: "missing _id" });
+        return;
       }
-      let _id = req.body["_id"];
-      for (let i in arr) {
-        if (arr[i]["_id"] === _id) {
-          arr.shift(i);
+      ProjectModel.findOne({ name: project }, (err, projectdata) => {
+        if (!projectdata || err) {
+          res.send({ error: "could not delete", _id: _id });
+        } else {
+          const issueData = projectdata.issues.id(_id);
+          if (!issueData) {
+            res.send({ error: "could not delete", _id: _id });
+            return;
+          }
+          issueData.remove();
+
+          projectdata.save((err, data) => {
+            if (err || !data) {
+              res.json({ error: "could not delete", _id: issueData._id });
+            } else {
+              res.json({ result: "successfully deleted", _id: issueData._id });
+            }
+          });
         }
-      }
-      res.json({ _id: `${_id} removed` });
+      });
     });
 };
